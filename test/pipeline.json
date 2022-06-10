@@ -1,0 +1,267 @@
+{
+  "pipeline": {
+    "id": "c40346ed-c279-4626-b6db-9422ca9756cf",
+    "data": {
+      "languageVersion": "1.12.5",
+      "createAt": 1.6545912337331753E9,
+      "application": "appname",
+      "commit": "32cbee7e294",
+      "branch": "proxy-20220510",
+      "git": "app/appname",
+      "defaultPort": 7077,
+      "language": "go",
+      "nonStandard": "false",
+      "build_time": "20220510"
+    },
+    "create_at": 1.652165795325374E9,
+    "name": "标准模板2",
+    "status": "PENDING",
+    "start_node": "d7e62d6c-0949-44c3-770a-b2de2b1ba322"
+  },
+  "nodes": [
+    {
+      "id": "03b773c7-72d1-40f3-b1f1-237ba046ff1c",
+      "action": {
+        "id": "7ab73f29-9a27-44e7-a144-cfd77befde7a",
+        "content": null,
+        "type": "kafka",
+        "method": null,
+        "address": "10.57.22.239:9092,10.57.22.240:9092,10.57.12.233:9092",
+        "topic": "docker-deploy"
+      },
+      "data": {
+        "service": "proxy-20220510-dev",
+        "count": 1,
+        "batch": "100%",
+        "cpu": 2.0,
+        "memory": 4.0,
+        "serverType": "general",
+        "gpuCore": 0,
+        "gpuMem": 0,
+        "appEnv": {
+          "SHUTTER": "10.57.17.39:7177",
+          "CLUSTER": "appname",
+          "GRAYLOG_HOST": "10.59.1.149",
+          "GRAYLOG_PORT": "7077",
+          "APP_PORT": 7077,
+          "ENV": "dev",
+          "APPNAME": "appname",
+          "JVM_EXT_PARAM": "",
+          "DC": "TE",
+          "APP_EXT_PARAM": "",
+          "APP_RUN_MODE": "fg",
+          "LIMIT_CPU": 2.0,
+          "LIMIT_MEM": 4.0,
+          "CONSOLE_LEVEL": "INFO",
+          "COMMIT_ID": "32cbee7e294",
+          "APP_TEST_AGENT": false,
+          "APP_TEST_TAG": "None",
+          "S3_ACCESS_KEY": "4MJ9AO9A36H247U239TF",
+          "S3_ADDR": "http://10.57.11.100:7070",
+          "S3_BUCKET": "dev.cicd.deployment",
+          "S3_SECRET_KEY": "TuNWeU0s6jCWOlfbIBF50u7iBFMoptv74GMUtNIM",
+          "SW_AGENT_COLLECTOR_BACKEND_SERVICES": "10.59.93.100:11700",
+          "SW_AGENT_SAMPLE": 150,
+          "SW_THREADING_CLASS_PREFIXES": "cn.tongdun.appname",
+          "LANGUAGE_VERSION": "1.12.5"
+        },
+        "configMap": {
+          "name": "appname-dev",
+          "mode": "file",
+          "mount_path": "/home/admin/appname/conf"
+        },
+        "useConfigMap": true,
+        "stage": "DEVELOPING",
+        "deployParam": {
+          "packageTimeout": 600,
+          "livenessInitialDelaySeconds": 170,
+          "tarSyncZones": [ ]
+        },
+        "prometheusParams": {
+          "prometheus.io/scrape": "false"
+        },
+        "internet": "None",
+        "vpc": "te",
+        "curImg": "registry.tongdun.me/ci/appname:20220510-32cbee7e294",
+        "debug": "false"
+      },
+      "admission": null,
+      "create_at": 1.652165795E9,
+      "start_time": 1.652165904E9,
+      "finish_time": 1.652165923E9,
+      "name": "部署dev环境",
+      "status": "PREPARED",
+      "start_condition": null,
+      "retry": 0,
+      "rollback": null,
+      "pre_nodes": [
+        "7c3ca42a-eddc-4f02-7176-77b6baea506d"
+      ],
+      "next_nodes": [
+        "db51c61a-1754-45f0-bf92-65fb65d4267d"
+      ]
+    },
+    {
+      "id": "1b7af7cd-7ec4-4a20-951d-153433cf4457",
+      "action": {
+        "id": "a2bbac15-d357-4e77-9b26-c27de9972b1e",
+        "content": null,
+        "type": "kafka",
+        "method": null,
+        "address": "10.57.22.239:9092,10.57.22.240:9092,10.57.12.233:9092",
+        "topic": "docker-deploy"
+      },
+      "data": {
+        "service": "proxy-20220510-smoke",
+        "count": 1,
+        "batch": "100%",
+        "cpu": 2.0,
+        "memory": 4.0,
+        "serverType": "general",
+        "gpuCore": 0,
+        "gpuMem": 0,
+        "appEnv": {
+          "SHUTTER": "10.57.19.44:7177",
+          "CLUSTER": "appname",
+          "GRAYLOG_HOST": "10.59.1.149",
+          "GRAYLOG_PORT": "7077",
+          "APP_PORT": 7077,
+          "ENV": "smoke",
+          "APPNAME": "appname",
+          "JVM_EXT_PARAM": "",
+          "DC": "TE",
+          "APP_EXT_PARAM": "",
+          "APP_RUN_MODE": "fg",
+          "LIMIT_CPU": 2.0,
+          "LIMIT_MEM": 4.0,
+          "CONSOLE_LEVEL": "INFO",
+          "COMMIT_ID": "32cbee7e294",
+          "APP_TEST_AGENT": false,
+          "APP_TEST_TAG": "None",
+          "S3_ACCESS_KEY": "4MJ9AO9A36H247U239TF",
+          "S3_ADDR": "http://10.57.11.100:7070",
+          "S3_BUCKET": "dev.cicd.deployment",
+          "S3_SECRET_KEY": "TuNWeU0s6jCWOlfbIBF50u7iBFMoptv74GMUtNIM",
+          "SW_AGENT_COLLECTOR_BACKEND_SERVICES": "10.59.93.100:11700",
+          "SW_AGENT_SAMPLE": 150,
+          "SW_THREADING_CLASS_PREFIXES": "cn.tongdun.appname",
+          "LANGUAGE_VERSION": "1.12.5"
+        },
+        "configMap": {
+          "name": "appname-dev",
+          "mode": "file",
+          "mount_path": "/home/admin/appname/conf"
+        },
+        "useConfigMap": true,
+        "stage": "DEVELOPING",
+        "deployParam": {
+          "packageTimeout": 600,
+          "livenessInitialDelaySeconds": 170,
+          "tarSyncZones": [ ]
+        },
+        "prometheusParams": {
+          "prometheus.io/scrape": "false"
+        },
+        "internet": "None",
+        "vpc": "te",
+        "curImg": "registry.tongdun.me/ci/appname:20220510-32cbee7e294",
+        "debug": "false"
+      },
+      "admission": null,
+      "create_at": 1.652165795E9,
+      "start_time": 1.652165904E9,
+      "finish_time": 1.652165924E9,
+      "name": "部署smoke环境",
+      "status": "PREPARED",
+      "start_condition": null,
+      "retry": 0,
+      "rollback": null,
+      "pre_nodes": [
+        "7c3ca42a-eddc-4f02-7176-77b6baea506d"
+      ],
+      "next_nodes": [
+        "02e4abd4-aba7-4337-bf79-7127463ebe64"
+      ]
+    },
+    {
+      "id": "cc09e173-7cf7-4912-beb2-3f60f0b3a956",
+      "action": {
+        "id": "e47fb69f-bdd3-4c66-77ab-745aa0bbda2e",
+        "content": null,
+        "type": "kafka",
+        "method": null,
+        "address": "10.57.22.239:9092,10.57.22.240:9092,10.57.12.233:9092",
+        "topic": "docker-deploy"
+      },
+      "data": {
+        "service": "proxy-20220510-test",
+        "count": 1,
+        "batch": "100%",
+        "cpu": 2.0,
+        "memory": 4.0,
+        "serverType": "general",
+        "gpuCore": 0,
+        "gpuMem": 0,
+        "appEnv": {
+          "SHUTTER": "10.57.19.44:7177",
+          "CLUSTER": "appname",
+          "GRAYLOG_HOST": "10.59.1.149",
+          "GRAYLOG_PORT": "7077",
+          "APP_PORT": 7077,
+          "ENV": "test",
+          "APPNAME": "appname",
+          "JVM_EXT_PARAM": "",
+          "DC": "TE",
+          "APP_EXT_PARAM": "",
+          "APP_RUN_MODE": "fg",
+          "LIMIT_CPU": 2.0,
+          "LIMIT_MEM": 4.0,
+          "CONSOLE_LEVEL": "INFO",
+          "COMMIT_ID": "32cbee7e294",
+          "APP_TEST_AGENT": false,
+          "APP_TEST_TAG": "None",
+          "S3_ACCESS_KEY": "4MJ9AO9A36H247U239TF",
+          "S3_ADDR": "http://10.57.11.100:7070",
+          "S3_BUCKET": "dev.cicd.deployment",
+          "S3_SECRET_KEY": "TuNWeU0s6jCWOlfbIBF50u7iBFMoptv74GMUtNIM",
+          "SW_AGENT_COLLECTOR_BACKEND_SERVICES": "10.59.93.100:11700",
+          "SW_AGENT_SAMPLE": 150,
+          "SW_THREADING_CLASS_PREFIXES": "cn.tongdun.appname",
+          "LANGUAGE_VERSION": "1.12.5"
+        },
+        "configMap": {
+          "name": "appname-dev",
+          "mode": "file",
+          "mount_path": "/home/admin/appname/conf"
+        },
+        "useConfigMap": true,
+        "stage": "TESTING",
+        "deployParam": {
+          "packageTimeout": 600,
+          "livenessInitialDelaySeconds": 170,
+          "tarSyncZones": [ ]
+        },
+        "prometheusParams": {
+          "prometheus.io/scrape": "false"
+        },
+        "internet": "None",
+        "vpc": "te"
+      },
+      "admission": null,
+      "create_at": 1.652165795E9,
+      "start_time": null,
+      "finish_time": null,
+      "name": "部署test环境",
+      "status": "INITED",
+      "start_condition": null,
+      "retry": 0,
+      "rollback": null,
+      "pre_nodes": [
+        "db51c61a-1754-45f0-bf92-65fb65d4267d"
+      ],
+      "next_nodes": [
+        "d277ae79-9036-4e72-96ce-324b1bc5662a"
+      ]
+    }
+  ]
+}
