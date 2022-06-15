@@ -18,6 +18,8 @@ package chart
 
 import (
 	"bufio"
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -70,6 +72,8 @@ const (
 	HelpersName = string(filepath.Separator) + "_helpers.tpl"
 	// TestConnectionName is the name of the example test file.
 	TestConnectionName = TemplatesTestsDir + sep + "test-connection.yaml"
+	APPNAME            = "<APPNAME>"
+	CHARTNAME          = "<CHARTNAME>"
 )
 
 // maxChartNameLength is lower than the limits we know of with certain file systems,
@@ -125,15 +129,6 @@ func CreateFrom(chartfile *chart.Metadata, dest, src string) error {
 // a given key with the replacement string
 func transform(src, replacement string) []byte {
 	return []byte(strings.ReplaceAll(src, "<CHARTNAME>", replacement))
-}
-
-// transform performs a string replacement of the specified source for
-// a given key with the replacement string
-func TransformAppName(src, old, new string) []byte {
-	if old == "" {
-		old = "<CHARTNAME>"
-	}
-	return []byte(strings.ReplaceAll(src, old, new))
 }
 
 func writeFile(name string, content []byte) error {
@@ -205,9 +200,8 @@ var model = Model{
 // 单个应用
 type App struct {
 	Name   string
-	Dir    string
 	Types  []string
-	Values map[string]interface{} `json:"values"`
+	Values map[string]interface{}
 }
 
 // 组合应用
@@ -219,8 +213,8 @@ type Apps struct {
 }
 
 // 构建单应用的部署文件
-func chartFile(name, dir string, types []string) (string, error) {
-	if err := validateChartName(name); err != nil {
+func WriteTplFile(apps *Apps, app *App, dir string) (string, error) {
+	if err := validateChartName(app.Name); err != nil {
 		return "", err
 	}
 
@@ -228,7 +222,6 @@ func chartFile(name, dir string, types []string) (string, error) {
 	if err != nil {
 		return path, err
 	}
-	fmt.Println("--------path-----------", path)
 
 	if fi, err := os.Stat(path); err != nil {
 		return path, err
@@ -236,22 +229,56 @@ func chartFile(name, dir string, types []string) (string, error) {
 		return path, errors.Errorf("no such directory %s", path)
 	}
 
-	for _, t := range types {
+	for _, t := range app.Types {
 		m, ok := model[t]
 		if !ok {
 			continue
 		}
-		path := filepath.Join(path, fmt.Sprintf(m.FileName, name))
-		fmt.Println("--------path2-----------", path)
+		path := filepath.Join(path, fmt.Sprintf(m.FileName, app.Name))
 		if _, err := os.Stat(path); err == nil {
 			// There is no handle to a preferred output stream here.
 			fmt.Fprintf(Stderr, "WARNING: File %q already exists. Overwriting.\n", path)
 		}
-		if err := writeFile(path, transform(m.Content, name)); err != nil {
+		if strings.Contains(m.Content, APPNAME) {
+			m.Content = strings.ReplaceAll(m.Content, APPNAME, app.Name)
+		}
+		if strings.Contains(m.Content, CHARTNAME) {
+			m.Content = strings.ReplaceAll(m.Content, CHARTNAME, apps.Name)
+		}
+		if err := writeFile(path, []byte(m.Content)); err != nil {
 			return path, err
 		}
 	}
 	return "", err
+}
+
+// 构建value.yaml文件
+func WriteValueFile(path string, apps *Apps, defaultContent []byte) error {
+	var err error
+	var content [][]byte
+	appValue := make(map[string]interface{})
+	if defaultContent != nil {
+		content = append(content, defaultContent)
+	}
+	for _, app := range apps.Sets {
+		appValue[app.Name] = app.Values
+	}
+	value, err := yaml.Marshal(appValue)
+	content = append(content, value)
+	if err := writeFile(filepath.Join(path, ValuesfileName), bytes.Join(content, []byte("\n"))); err != nil {
+		fmt.Println("create Value.yaml err:", err)
+	}
+	return err
+}
+
+// 构建_helpers.tpl
+func WriteHelperFile(path, defaultHelpers string, app *App, apps *Apps) error {
+	var err error
+	content := strings.ReplaceAll(defaultHelpers, APPNAME, app.Name)
+	if err := writeFileAppend(path, transform(content, apps.Name)); err != nil {
+		fmt.Println("create Helpers.tpl err:", err)
+	}
+	return err
 }
 
 // 构建多个应用的部署文件
@@ -262,7 +289,6 @@ func ChartsFile(apps *Apps) (string, error) {
 	}
 
 	path, err := filepath.Abs(apps.Path)
-	fmt.Println("---path---", path)
 	if err != nil {
 		return path, err
 	}
@@ -275,18 +301,17 @@ func ChartsFile(apps *Apps) (string, error) {
 
 	cdir := filepath.Join(path, apps.Name)
 	if fi, err := os.Stat(cdir); err == nil && !fi.IsDir() {
-		return cdir, errors.Errorf("file %s already exists and is not a directory", cdir)
+		return cdir, errors.Errorf("file %s already exists and is not app directory", cdir)
 	}
-	fmt.Println("---cdir---", cdir)
 	templatesDir := filepath.Join(cdir, TemplatesDir)
-	fmt.Println("---templatesDir---", templatesDir)
-
-	for _, a := range apps.Sets {
-		// create helpers.tpl
-		if err := writeFileAppend(templatesDir+HelpersName, transform(defaultHelpers, a.Name)); err != nil {
-			fmt.Println("chartsFile Helpers.tpl err:", err)
-		}
-		_, err := chartFile(a.Name, templatesDir, a.Types)
+	// create helpers.tpl for all templates
+	if err := writeFile(templatesDir+HelpersName, transform(defaultHelpers, apps.Name)); err != nil {
+		fmt.Println("chartsFile Chart.yaml err:", err)
+	}
+	for _, app := range apps.Sets {
+		// create helpers.tpl for app templates
+		WriteHelperFile(templatesDir+HelpersName, defaultAppHelpers, app, apps)
+		_, err := WriteTplFile(apps, app, templatesDir)
 		if err != nil {
 			fmt.Println("chartsFile err:", err)
 			break
@@ -294,9 +319,7 @@ func ChartsFile(apps *Apps) (string, error) {
 	}
 
 	// create value.yaml
-	if err := writeFile(filepath.Join(cdir, ValuesfileName), transform(defaultValues, apps.Name)); err != nil {
-		fmt.Println("chartsFile Value.yaml err:", err)
-	}
+	WriteValueFile(cdir, apps, nil)
 	// Chart.yaml
 	if err := writeFile(filepath.Join(cdir, ChartfileName), transform(fmt.Sprintf(defaultChartfile, apps.Name), apps.Name)); err != nil {
 		fmt.Println("chartsFile Chart.yaml err:", err)
@@ -309,34 +332,73 @@ func InitApps() *Apps {
 	apps.Name = "demo"
 	apps.Version = "1.0.0"
 	apps.Path = "."
+	var n map[string]interface{}
+	const defaultValuesJson = `
+{
+  "appname": "appname",
+  "version": "version",
+  "value": {
+    "replicaCount": 1,
+    "image": {
+      "repository": "nginx",
+      "pullPolicy": "IfNotPresent",
+      "tag": ""
+    },
+    "imagePullSecrets": [ ],
+    "nameOverride": "",
+    "fullnameOverride": "",
+    "podAnnotations": { },
+    "podSecurityContext": { },
+    "securityContext": { },
+    "service": {
+      "type": "ClusterIP",
+      "port": 80
+    },
+    "resources": { },
+    "nodeSelector": { },
+    "affinity": { },
+    "secret": "",
+    "configMap": "",
+    "volumeMounts": [ ],
+    "volumes": [ ],
+    "env": [
+      {
+        "name": "APPNAME",
+        "value": "dragon-claw"
+      },
+      {
+        "name": "APP_EXT_PARAM"
+      },
+      {
+        "name": "APP_PORT",
+        "value": "8088"
+      },
+      {
+        "name": "APP_RUN_MODE",
+        "value": "fg"
+      }
+    ]
+  }
+}
+	`
+	json.Unmarshal([]byte(defaultValuesJson), &n)
 
 	app1 := &App{
-		Name:  "app1",
-		Dir:   ".",
-		Types: []string{"deployment", "svc"},
+		Name:   "app1",
+		Types:  []string{"deployment", "svc"},
+		Values: n,
 	}
 	app2 := &App{
-		Name:  "app2",
-		Dir:   ".",
-		Types: []string{"deployment", "svc"},
+		Name:   "app2",
+		Types:  []string{"deployment", "svc"},
+		Values: n,
 	}
 	app3 := &App{
-		Name:  "app3",
-		Dir:   ".",
-		Types: []string{"deployment", "svc"},
+		Name:   "app3",
+		Types:  []string{"deployment", "svc"},
+		Values: n,
 	}
-
 	apps.Sets = []*App{app1, app2, app3}
-
 	return apps
 
 }
-
-/*
-tempDir, err := ioutil.TempDir("", "chart-archive-")
-	if err != nil {
-		return nil, false, fmt.Errorf("creating archive for %s: %w", path, err)
-	}
-
-
-*/

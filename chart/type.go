@@ -27,110 +27,77 @@ appVersion: "1.16.0"
 `
 
 const defaultValues = `
-# Default values for <APPNAME>.
+# Default values.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-<APPNAME>:
-	replicaCount: 1
-	
-	image:
-	  repository: nginx
-	  pullPolicy: IfNotPresent
-	  # Overrides the image tag whose default is the chart appVersion.
-	  tag: ""
-	
-	imagePullSecrets: []
-	nameOverride: ""
-	fullnameOverride: ""
-	podAnnotations: {}
-	podSecurityContext: {}
-	  # fsGroup: 2000
-	
-	securityContext: {}
-	  # capabilities:
-	  #   drop:
-	  #   - ALL
-	  # readOnlyRootFilesystem: true
-	  # runAsNonRoot: true
-	  # runAsUser: 1000
-	
-	service:
-	  type: ClusterIP
-	  port: 80
-	
-	ingress:
-	  enabled: false
-	  className: ""
-	  annotations: {}
-		# kubernetes.io/ingress.class: nginx
-		# kubernetes.io/tls-acme: "true"
-	  hosts:
-		- host: chart-example.local
-		  paths:
-			- path: /
-			  pathType: ImplementationSpecific
-	  tls: []
-	  #  - secretName: chart-example-tls
-	  #    hosts:
-	  #      - chart-example.local
-	
-	resources: {}
-	  # We usually recommend not to specify default resources and to leave this as a conscious
-	  # choice for the user. This also increases chances charts run on environments with little
-	  # resources, such as Minikube. If you do want to specify resources, uncomment the following
-	  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-	  # limits:
-	  #   cpu: 100m
-	  #   memory: 128Mi
-	  # requests:
-	  #   cpu: 100m
-	  #   memory: 128Mi
-	
-	autoscaling:
-	  enabled: false
-	  minReplicas: 1
-	  maxReplicas: 100
-	  targetCPUUtilizationPercentage: 80
-	  # targetMemoryUtilizationPercentage: 80
-	
-	nodeSelector: {}
-	
-	tolerations: []
-	
-	affinity: {}
-`
+replicaCount: 1
 
-const defaultValuesJson = `
-{
-  "appname": "appname",
-  "version": "version",
-  "value": {
-    "replicaCount": 1,
-    "image": {
-      "repository": "nginx",
-      "pullPolicy": "IfNotPresent",
-      "tag": ""
-    },
-    "imagePullSecrets": [],
-    "nameOverride": "",
-    "fullnameOverride": "",
-    "podAnnotations": {},
-    "podSecurityContext": {},
-    "securityContext": {},
-    "service": {
-      "type": "ClusterIP",
-      "port": 80
-    },
-    "resources": {},
-    "nodeSelector": {},
-    "affinity": {},
-	"secret":"",
-	"configMap": "",
-	"volumeMounts":[],
-	"volumes":[]
-  }
-}
+image:
+  repository: nginx
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+podAnnotations: {}
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+	# kubernetes.io/ingress.class: nginx
+	# kubernetes.io/tls-acme: "true"
+  hosts:
+	- host: chart-example.local
+	  paths:
+		- path: /
+		  pathType: ImplementationSpecific
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
 `
 
 const defaultIgnore = `# Patterns to ignore when building packages.
@@ -220,46 +187,43 @@ spec:
     {{- end }}
 {{- end }}
 `
-
-const defaultDeployment = `apiVersion: apps/v1
+const defaultDeployment = `
+apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "<CHARTNAME>.fullname" . }}
+  name: {{ .Values.<APPNAME>.appname }}
   labels:
     {{- include "<CHARTNAME>.labels" . | nindent 4 }}
 spec:
-  {{- if not .Values.autoscaling.enabled }}
-  replicas: {{ .Values.replicaCount }}
-  {{- end }}
+  replicas: {{ .Values.<APPNAME>.replicaCount }}
   selector:
     matchLabels:
       {{- include "<CHARTNAME>.selectorLabels" . | nindent 6 }}
   template:
     metadata:
-      {{- with .Values.podAnnotations }}
+      {{- with .Values.<APPNAME>.podAnnotations }}
       annotations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
         {{- include "<CHARTNAME>.selectorLabels" . | nindent 8 }}
     spec:
-      {{- with .Values.imagePullSecrets }}
+      {{- with .Values.<APPNAME>.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "<CHARTNAME>.serviceAccountName" . }}
-      securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
-        - name: {{ .Chart.Name }}
-          securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
+        - name: {{ .Values.<APPNAME>.appname }}
+          image: "{{ .Values.<APPNAME>.value.image.repository }}:{{ .Values.<APPNAME>.value.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.<APPNAME>.value.image.pullPolicy }}
           ports:
-            - name: http
-              containerPort: 80
-              protocol: TCP
+          - containerPort: 80
+            name: http
+            protocol: TCP
+          {{- with .Values.<APPNAME>.value.env }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           livenessProbe:
             httpGet:
               path: /
@@ -269,16 +233,16 @@ spec:
               path: /
               port: http
           resources:
-            {{- toYaml .Values.resources | nindent 12 }}
-      {{- with .Values.nodeSelector }}
+            {{- toYaml .Values.<APPNAME>.value.resources | nindent 12 }}
+      {{- with .Values.<APPNAME>.value.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.affinity }}
+      {{- with .Values.<APPNAME>.value.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.tolerations }}
+      {{- with .Values.<APPNAME>.value.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -287,18 +251,17 @@ spec:
 const defaultService = `apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "<CHARTNAME>.fullname" . }}
+  name: {{ .Values.<APPNAME>.appname }}
   labels:
+    {{ .Values.<APPNAME>.labels }}
     {{- include "<CHARTNAME>.labels" . | nindent 4 }}
 spec:
-  type: {{ .Values.service.type }}
+  type: {{ .Values.<APPNAME>.value.service.type }}
   ports:
-    - port: {{ .Values.service.port }}
+    - port: {{ .Values.<APPNAME>.value.service.port }}
       targetPort: http
       protocol: TCP
       name: http
-  selector:
-    {{- include "<CHARTNAME>.selectorLabels" . | nindent 4 }}
 `
 
 const defaultServiceAccount = `{{- if .Values.serviceAccount.create -}}
@@ -377,24 +340,6 @@ Expand the name of the chart.
 {{- end }}
 
 {{/*
-Create a default fully qualified app name.
-We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
-If release name contains chart name it will be used as a full name.
-*/}}
-{{- define "<CHARTNAME>.fullname" -}}
-{{- if .Values.<APPNAME>.fullnameOverride }}
-{{- .Values.<APPNAME>.fullnameOverride | trunc 63 | trimSuffix "-" }}
-{{- else }}
-{{- $name := default .Chart.Name .Values.<APPNAME>.nameOverride }}
-{{- if contains $name .Release.Name }}
-{{- .Release.Name | trunc 63 | trimSuffix "-" }}
-{{- else }}
-{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}
-{{- end }}
-{{- end }}
-{{- end }}
-
-{{/*
 Create chart name and version as used by the chart label.
 */}}
 {{- define "<CHARTNAME>.chart" -}}
@@ -433,68 +378,9 @@ Create the name of the service account to use
 {{- end }}
 `
 
-const defaultHelpers2 = `{{/*
-Expand the name of the chart.
+const defaultAppHelpers = `{{/*
+Expand the name of the App helper.
 */}}
-{{- define "<CHARTNAME>.name" -}}
-{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
-{{- end }}
-
-{{/*
-Create a default fully qualified app name.
-We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
-If release name contains chart name it will be used as a full name.
-*/}}
-{{- define "<CHARTNAME>.fullname" -}}
-{{- if .Values.fullnameOverride }}
-{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
-{{- else }}
-{{- $name := default .Chart.Name .Values.nameOverride }}
-{{- if contains $name .Release.Name }}
-{{- .Release.Name | trunc 63 | trimSuffix "-" }}
-{{- else }}
-{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}
-{{- end }}
-{{- end }}
-{{- end }}
-
-{{/*
-Create chart name and version as used by the chart label.
-*/}}
-{{- define "<CHARTNAME>.chart" -}}
-{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
-{{- end }}
-
-{{/*
-Common labels
-*/}}
-{{- define "<CHARTNAME>.labels" -}}
-helm.sh/chart: {{ include "<CHARTNAME>.chart" . }}
-{{ include "<CHARTNAME>.selectorLabels" . }}
-{{- if .Chart.AppVersion }}
-app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
-{{- end }}
-app.kubernetes.io/managed-by: {{ .Release.Service }}
-{{- end }}
-
-{{/*
-Selector labels
-*/}}
-{{- define "<CHARTNAME>.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "<CHARTNAME>.name" . }}
-app.kubernetes.io/instance: {{ .Release.Name }}
-{{- end }}
-
-{{/*
-Create the name of the service account to use
-*/}}
-{{- define "<CHARTNAME>.serviceAccountName" -}}
-{{- if .Values.serviceAccount.create }}
-{{- default (include "<CHARTNAME>.fullname" .) .Values.serviceAccount.name }}
-{{- else }}
-{{- default "default" .Values.serviceAccount.name }}
-{{- end }}
-{{- end }}
 `
 
 const defaultTestConnection = `apiVersion: v1

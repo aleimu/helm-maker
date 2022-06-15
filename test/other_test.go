@@ -3,7 +3,6 @@ package test
 import (
 	"encoding/json"
 	"fmt"
-	"helm-maker/chart"
 	"sigs.k8s.io/yaml"
 	"strings"
 	"testing"
@@ -221,7 +220,7 @@ func TestGenValueByJson(t *testing.T) {
 	}
 
 	var m map[string]interface{}
-	if err := yaml.Unmarshal(chart.TransformAppName(defaultDeployment, "<APPNAME>", "myapp"), &m); err != nil {
+	if err := yaml.Unmarshal([]byte(strings.ReplaceAll(defaultDeployment, "<APPNAME>", "myapp")), &m); err != nil {
 		fmt.Println(err)
 	} else {
 		fmt.Printf("%+v", m)
